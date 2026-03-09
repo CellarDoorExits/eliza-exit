@@ -94,8 +94,14 @@ export const exitAction: Action = {
       });
 
       if (callback) {
+        // Truncate JSON for platforms with message limits (Discord 2000 chars, Twitter 280)
+        const maxJsonLen = 1200;
+        const jsonDisplay = markerJson.length > maxJsonLen
+          ? markerJson.slice(0, maxJsonLen) + "\n... (truncated, full marker stored in memory)"
+          : markerJson;
+
         callback({
-          text: `EXIT marker created successfully.\n\n**Marker ID:** ${result.marker.id}\n**Subject:** ${result.marker.subject}\n**Origin:** ${origin}\n**Exit Type:** ${result.marker.exitType}\n\n\`\`\`json\n${markerJson}\n\`\`\``,
+          text: `EXIT marker created successfully.\n\n**Marker ID:** ${result.marker.id}\n**Subject:** ${result.marker.subject}\n**Origin:** ${origin}\n**Exit Type:** ${result.marker.exitType}\n\n\`\`\`json\n${jsonDisplay}\n\`\`\``,
           content: { marker: result.marker, identity: { did: result.identity.did } },
         });
       }

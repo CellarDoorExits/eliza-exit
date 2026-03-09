@@ -49,6 +49,24 @@ User: Verify this EXIT marker: {"@context":"https://exit.pub/v1"...}
 Agent: ✅ EXIT marker verified successfully.
 ```
 
+## Persistent Identity
+
+By default, `quickExit()` generates an ephemeral keypair per marker. For agents that need a consistent identity across departures, use the lower-level API from `cellar-door-exit`:
+
+```typescript
+import { generateKeyPair, createMarker, signMarker } from "cellar-door-exit";
+
+// Generate once, store securely
+const identity = await generateKeyPair("ed25519");
+// Use the same identity for all markers
+const marker = createMarker({ origin: "twitter", subject: identity.did });
+const signed = await signMarker(marker, identity);
+```
+
+## Privacy & GDPR
+
+EXIT markers contain DIDs and timestamps that may constitute personal data under GDPR. See the [GDPR Guide](https://github.com/CellarDoorExits/exit-door/blob/main/GDPR_GUIDE.md) for erasure tiers and compliance guidance.
+
 ## Ecosystem
 
 | Package | Description |
