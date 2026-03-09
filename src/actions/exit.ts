@@ -8,6 +8,14 @@ import type { Action, IAgentRuntime, Memory, State, HandlerCallback } from "@eli
  *   "platform: Slack" / "origin is Mastodon"
  * Falls back to "unknown-platform" if nothing found.
  */
+/** Sanitize origin to prevent prompt injection via history provider. */
+function sanitizeOrigin(raw: string): string {
+  return raw
+    .replace(/[\n\r\t]/g, "")
+    .replace(/[^\w.-]/g, "")
+    .slice(0, 64) || "unknown-platform";
+}
+
 function extractOrigin(text: string): string {
   const patterns = [
     // "from <platform>" / "leaving <platform>"
@@ -64,7 +72,7 @@ export const exitAction: Action = {
     callback?: HandlerCallback,
   ): Promise<boolean> => {
     const text = message.content?.text ?? "";
-    const origin = extractOrigin(text);
+    const origin = sanitizeOrigin(extractOrigin(text));
 
     try {
       const result: QuickExitResult = await quickExit(origin);
