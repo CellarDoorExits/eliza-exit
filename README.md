@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@cellar-door/eliza)](https://www.npmjs.com/package/@cellar-door/eliza)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
 
-> **⚠️ Pre-release software — no formal security audit has been conducted.**
+> **⚠️ Pre-release software — no formal security audit has been conducted.** Report vulnerabilities to hawthornhollows@gmail.com.
 
 EXIT Protocol plugin for [ElizaOS](https://elizaos.ai). Gives your Eliza agent the ability to create and verify cryptographic departure records.
 
@@ -69,12 +69,21 @@ EXIT markers contain DIDs and timestamps that may constitute personal data under
 
 ## Ecosystem
 
-| Package | Description |
-|---------|-------------|
-| [`cellar-door-exit`](https://www.npmjs.com/package/cellar-door-exit) | TypeScript core library |
-| [`cellar-door-exit` (PyPI)](https://pypi.org/project/cellar-door-exit/) | Python core library |
-| [`@cellar-door/eliza`](https://www.npmjs.com/package/@cellar-door/eliza) | **ElizaOS plugin** ← you are here |
-| [`@cellar-door/langchain`](https://www.npmjs.com/package/@cellar-door/langchain) | LangChain integration |
+| Package | Language | Description |
+|---------|----------|-------------|
+| [cellar-door-exit](https://github.com/CellarDoorExits/exit-door) | TypeScript | Core protocol (reference impl) |
+| [cellar-door-exit](https://github.com/CellarDoorExits/exit-python) | Python | Core protocol |
+| [cellar-door-entry](https://github.com/CellarDoorExits/entry-door) | TypeScript | Arrival/entry markers |
+| [@cellar-door/langchain](https://github.com/CellarDoorExits/langchain) | TypeScript | LangChain integration |
+| [cellar-door-langchain](https://github.com/CellarDoorExits/cellar-door-langchain-python) | Python | LangChain integration |
+| [@cellar-door/vercel-ai-sdk](https://github.com/CellarDoorExits/vercel-ai-sdk) | TypeScript | Vercel AI SDK |
+| [@cellar-door/mcp-server](https://github.com/CellarDoorExits/mcp-server) | TypeScript | MCP server |
+| **[@cellar-door/eliza](https://github.com/CellarDoorExits/eliza-exit)** | **TypeScript** | **ElizaOS plugin ← you are here** |
+| [@cellar-door/eas](https://github.com/CellarDoorExits/eas-adapter) | TypeScript | EAS attestation anchoring |
+| [@cellar-door/erc-8004](https://github.com/CellarDoorExits/erc-8004-adapter) | TypeScript | ERC-8004 identity/reputation |
+| [@cellar-door/sign-protocol](https://github.com/CellarDoorExits/sign-protocol-adapter) | TypeScript | Sign Protocol attestation |
+
+**[Paper](https://cellar-door.dev/paper/) · [Website](https://cellar-door.dev)**
 
 ## License
 
