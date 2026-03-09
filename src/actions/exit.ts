@@ -1,6 +1,35 @@
 import { quickExit, toJSON, type QuickExitResult } from "cellar-door-exit";
 import type { Action, IAgentRuntime, Memory, State, HandlerCallback } from "@elizaos/core";
 
+/**
+ * Extract the platform/origin from user text.
+ * Matches patterns like:
+ *   "leaving Twitter" / "exit from Discord" / "departure from 'My Server'"
+ *   "platform: Slack" / "origin is Mastodon"
+ * Falls back to "unknown-platform" if nothing found.
+ */
+function extractOrigin(text: string): string {
+  const patterns = [
+    // "from <platform>" / "leaving <platform>"
+    /(?:from|leaving|exiting|departing)\s+["']?(\w[\w.-]+)["']?/i,
+    // "platform: <value>" or "origin: <value>"
+    /(?:platform|origin)[\s:]+["']?(\w[\w.-]+)["']?/i,
+    // "for <platform>" (as in "create an exit marker for Twitter")
+    /(?:marker|record|departure)\s+(?:for|on)\s+["']?(\w[\w.-]+)["']?/i,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m?.[1]) {
+      const val = m[1].toLowerCase();
+      // Filter out noise words that aren't platforms
+      if (!["this", "the", "my", "a", "an", "that", "here"].includes(val)) {
+        return m[1];
+      }
+    }
+  }
+  return "unknown-platform";
+}
+
 export const exitAction: Action = {
   name: "CREATE_EXIT_MARKER",
   similes: [
@@ -14,36 +43,47 @@ export const exitAction: Action = {
 
   validate: async (_runtime: IAgentRuntime, message: Memory): Promise<boolean> => {
     const text = (message.content?.text ?? "").toLowerCase();
-    return (
-      text.includes("exit") ||
-      text.includes("depart") ||
-      text.includes("leave") ||
-      text.includes("departure")
-    );
+    const hasExitKeyword =
+      text.includes("exit marker") ||
+      text.includes("departure record") ||
+      text.includes("exit protocol");
+    const hasActionKeyword =
+      (text.includes("exit") || text.includes("depart") || text.includes("departure")) &&
+      (text.includes("create") || text.includes("record") || text.includes("make") || text.includes("generate"));
+    const hasLeaveKeyword =
+      text.includes("leave") &&
+      (text.includes("marker") || text.includes("record") || text.includes("platform"));
+    return hasExitKeyword || hasActionKeyword || hasLeaveKeyword;
   },
 
   handler: async (
     runtime: IAgentRuntime,
     message: Memory,
-    state: State | undefined,
-    options: Record<string, unknown> | undefined,
+    _state: State | undefined,
+    _options: Record<string, unknown> | undefined,
     callback?: HandlerCallback,
   ): Promise<boolean> => {
     const text = message.content?.text ?? "";
-
-    // Extract origin from message or use a default
-    const originMatch = text.match(/(?:from|platform|origin)\s+["']?([^\s"']+)["']?/i);
-    const origin = originMatch?.[1] ?? "unknown-platform";
+    const origin = extractOrigin(text);
 
     try {
       const result: QuickExitResult = await quickExit(origin);
       const markerJson = toJSON(result.marker);
 
-      // Store in runtime memory for the history provider
-      const markers: QuickExitResult[] =
-        (runtime as any).__exitMarkers ?? [];
-      markers.push(result);
-      (runtime as any).__exitMarkers = markers;
+      // Store marker in Eliza's memory system for persistence and user isolation
+      await runtime.messageManager.createMemory({
+        id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`,
+        userId: message.userId,
+        agentId: runtime.agentId,
+        roomId: message.roomId,
+        content: {
+          text: `EXIT marker: ${result.marker.id} from ${origin}`,
+          exitMarker: markerJson,
+          markerId: result.marker.id,
+          origin,
+          exitType: result.marker.exitType,
+        },
+      });
 
       if (callback) {
         callback({
@@ -82,6 +122,45 @@ export const exitAction: Action = {
       {
         user: "{{user1}}",
         content: { text: "Record my departure from this platform" },
+      },
+      {
+        user: "{{agentName}}",
+        content: {
+          text: "EXIT marker created successfully.",
+          action: "CREATE_EXIT_MARKER",
+        },
+      },
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: { text: "I need to create a departure record for Discord" },
+      },
+      {
+        user: "{{agentName}}",
+        content: {
+          text: "EXIT marker created successfully.",
+          action: "CREATE_EXIT_MARKER",
+        },
+      },
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: { text: "Generate an exit marker — I'm leaving Mastodon" },
+      },
+      {
+        user: "{{agentName}}",
+        content: {
+          text: "EXIT marker created successfully.",
+          action: "CREATE_EXIT_MARKER",
+        },
+      },
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: { text: "Make an EXIT protocol record for departing from Slack" },
       },
       {
         user: "{{agentName}}",

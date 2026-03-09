@@ -8,7 +8,6 @@ export const exitPlugin: Plugin = {
   description: "EXIT Protocol — departure records for AI agents",
   actions: [exitAction, verifyExitAction],
   providers: [exitHistoryProvider],
-  services: [],
 };
 
 export { exitAction, verifyExitAction, exitHistoryProvider };

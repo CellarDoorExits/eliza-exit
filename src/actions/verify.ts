@@ -28,12 +28,29 @@ export const verifyExitAction: Action = {
   ): Promise<boolean> => {
     const text = message.content?.text ?? "";
 
-    // Extract JSON from the message (between ```json ... ``` or raw JSON)
-    const jsonMatch =
-      text.match(/```(?:json)?\s*([\s\S]*?)```/) ??
-      text.match(/(\{[\s\S]*\})/);
+    // Extract JSON: prefer fenced code blocks, then find balanced braces
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    let jsonStr: string | undefined;
 
-    if (!jsonMatch?.[1]) {
+    if (codeBlockMatch?.[1]) {
+      jsonStr = codeBlockMatch[1].trim();
+    } else {
+      // Find the first `{` and match to its balanced `}`
+      const start = text.indexOf("{");
+      if (start !== -1) {
+        let depth = 0;
+        for (let i = start; i < text.length; i++) {
+          if (text[i] === "{") depth++;
+          else if (text[i] === "}") depth--;
+          if (depth === 0) {
+            jsonStr = text.slice(start, i + 1);
+            break;
+          }
+        }
+      }
+    }
+
+    if (!jsonStr) {
       if (callback) {
         callback({
           text: "Please provide an EXIT marker as JSON to verify. You can paste it directly or wrap it in a code block.",
@@ -44,7 +61,7 @@ export const verifyExitAction: Action = {
     }
 
     try {
-      const result = quickVerify(jsonMatch[1].trim());
+      const result = quickVerify(jsonStr);
 
       if (callback) {
         if (result.valid) {
@@ -95,6 +112,34 @@ export const verifyExitAction: Action = {
         user: "{{agentName}}",
         content: {
           text: "Please provide an EXIT marker as JSON to verify.",
+          action: "VERIFY_EXIT_MARKER",
+        },
+      },
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: { text: "Can you validate this exit marker for me?" },
+      },
+      {
+        user: "{{agentName}}",
+        content: {
+          text: "Please provide an EXIT marker as JSON to verify.",
+          action: "VERIFY_EXIT_MARKER",
+        },
+      },
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: 'Verify this departure: ```json\n{"@context":"https://exit.pub/v1","subject":"did:key:z6Mk..."}\n```',
+        },
+      },
+      {
+        user: "{{agentName}}",
+        content: {
+          text: "EXIT marker verified successfully.",
           action: "VERIFY_EXIT_MARKER",
         },
       },
