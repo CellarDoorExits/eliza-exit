@@ -34,7 +34,8 @@
     "cellar-door-exit": "^0.2.0"
   },
   "peerDependencies": {
-    "@elizaos/core": ">=0.1.0 <2.0.0"
+    "@elizaos/core": ">=0.1.0 <2.0.0",
+    "cellar-door-entry": ">=0.1.0"
   },
   "devDependencies": {
     "@elizaos/core": "^0.1.0",
