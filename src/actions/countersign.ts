@@ -84,7 +84,7 @@ export const counterSignExitAction: Action = {
         signatureType: "Ed25519Signature2020",
       };
 
-      const updated = { ...marker, witnesses: [...(marker.witnesses ?? []), witness] };
+      const updated = { ...marker, witnesses: [...(((marker as any).witnesses) ?? []), witness] };
       const updatedJson = toJSON(updated as ExitMarker);
 
       if (callback) {
